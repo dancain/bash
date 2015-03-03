@@ -23,4 +23,7 @@ fi
 
 export EDITOR=vim
 export VISUAL=$EDITOR
-alias xname="tmux rename-window -t $TMUX_PANE"
+
+xname() {
+  tmux rename-window -t "$TMUX_PANE" $1
+}
