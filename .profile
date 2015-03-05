@@ -26,9 +26,23 @@ export VISUAL=$EDITOR
 
 # iTerm2::tmux integration
 xname() {
-  if [ -z $TMUX_PANE ]; then
+  if [ $TMUX_PANE ]; then
     tmux rename-window -t "$TMUX_PANE" $1
+  else
+    echo "No TMUX_PANE, No Gain"
   fi
+}
+xnew() {
+  if [ $TMUX ]; then
+    tmux new-window
+  else
+    echo "No TMUX found"
+  fi
+}
+xprofiles() {
+  for pane in $(tmux list-panes -a | awk '{print $7}'); do tmux send-keys -t $pane ". ~/.profile \
+
+"; done
 }
 
 #
