@@ -32,6 +32,7 @@ xname() {
     echo "No TMUX_PANE, No Gain"
   fi
 }
+
 xnew() {
   if [ $TMUX ]; then
     tmux new-window
@@ -39,11 +40,22 @@ xnew() {
     echo "No TMUX found"
   fi
 }
+
 xprofiles() {
   for pane in $(tmux list-panes -a | awk '{print $7}'); do tmux send-keys -t $pane ". ~/.profile \
 
 "; done
 }
+
+xpbcopy() {
+  if [ $TMUX ]; then
+    tmux save-buffer - | nc 127.0.0.1 8377
+  else
+    echo "No TMUX found"
+  fi
+}
+# pbcopy hook via "brew install clipper"
+alias pbcopy="nc 127.0.0.1 8377"
 
 #
 # setup ssh-agent
