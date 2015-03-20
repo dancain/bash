@@ -27,3 +27,11 @@ export VISUAL=$EDITOR
 xname() {
   tmux rename-window -t "$TMUX_PANE" $1
 }
+
+# Output header of STDIN and run rest of line with modified remnants
+# df -h | body sort -k3
+header() {
+  IFS= read -r header
+  printf '%s\n' "$header"
+  "$@"
+}
