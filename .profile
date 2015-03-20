@@ -24,9 +24,64 @@ fi
 export EDITOR=vim
 export VISUAL=$EDITOR
 
+# iTerm2::tmux integration
 xname() {
-  tmux rename-window -t "$TMUX_PANE" $1
+  if [ $TMUX_PANE ]; then
+    tmux rename-window -t "$TMUX_PANE" $1
+  else
+    echo "No TMUX_PANE, No Gain"
+  fi
 }
+
+xnew() {
+  if [ $TMUX ]; then
+    tmux new-window
+  else
+    echo "No TMUX found"
+  fi
+}
+
+xprofiles() {
+  for pane in $(tmux list-panes -a | awk '{print $7}'); do tmux send-keys -t $pane ". ~/.profile \
+
+"; done
+}
+
+xpbcopy() {
+  if [ $TMUX ]; then
+    tmux save-buffer - | nc 127.0.0.1 8377
+  else
+    echo "No TMUX found"
+  fi
+}
+# pbcopy hook via "brew install clipper"
+alias pbcopy="nc 127.0.0.1 8377"
+
+#
+# setup ssh-agent
+#
+
+# set environment variables if user's agent already exists
+SSH_AUTH_SOCK=$(ls -l /tmp/ssh-*/agent.* 2> /dev/null | grep $(whoami) | awk '{print $9}')
+SSH_AGENT_PID=$(echo $SSH_AUTH_SOCK | cut -d. -f2)
+[ -n "$SSH_AUTH_SOCK" ] && export SSH_AUTH_SOCK
+[ -n "$SSH_AGENT_PID" ] && export SSH_AGENT_PID
+
+# start agent if necessary
+if [ -z $SSH_AGENT_PID ] && [ -z $SSH_TTY ]; then  # if no agent & not in ssh
+  eval `ssh-agent -s` > /dev/null
+fi
+
+# setup addition of keys when needed
+if [ -z "$SSH_TTY" ] ; then                     # if not using ssh
+  ssh-add -l > /dev/null                        # check for keys
+  if [ $? -ne 0 ] ; then
+    alias ssh='ssh-add -l > /dev/null || ssh-add && unalias ssh ; ssh'
+    if [ -f "/usr/lib/ssh/x11-ssh-askpass" ] ; then
+      SSH_ASKPASS="/usr/lib/ssh/x11-ssh-askpass" ; export SSH_ASKPASS
+    fi
+  fi
+fi
 
 # Output header of STDIN and run rest of line with modified remnants
 # df -h | body sort -k3
@@ -35,3 +90,5 @@ header() {
   printf '%s\n' "$header"
   "$@"
 }
+
+# vim: set ts=2 sw=2 tw=79 et :
